@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>UTME CBT — ACME SCIENCE TUTORIAL</title>
+<style>
+  :root{--accent:#0b74de;--bg:#f7f9fc;--card:#fff;--muted:#666;--radius:12px;}
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+  body{background:var(--bg);display:flex;align-items:center;justify-content:center;padding:18px;}
+  .app{width:100%;max-width:920px;min-height:560px;box-shadow:0 8px 30px rgba(8,20,40,.08);border-radius:16px;overflow:hidden;position:relative}
+  .watermark{position:absolute;inset:0;pointer-events:none;opacity:0.06;background-repeat:no-repeat;background-position:center;background-size:45%;filter:grayscale(1) saturate(0);}
+  header{display:flex;align-items:center;gap:12px;padding:14px 18px;background:rgba(255,255,255,0.8);backdrop-filter:blur(4px);}
+  .logo-small{width:44px;height:44px;border-radius:8px;object-fit:contain;}
+  .title{font-weight:700;font-size:16px}
+  .subtitle{font-size:13px;color:var(--muted);margin-top:2px}
+  .page{padding:26px;display:none;min-height:420px;box-sizing:border-box;}
+  .visible{display:block}
+  .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 6px 20px rgba(10,20,40,.04);}
+  .center{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;}
+  input, .btn, select{width:100%;padding:12px;border-radius:8px;border:1px solid #e6eef8;font-size:15px}
+  .btn{background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .small{font-size:13px;color:var(--muted)}
+  .topright{position:absolute;right:14px;top:10px;font-size:13px;color:var(--muted)}
+  .meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .timer{font-weight:700;font-size:16px;padding:8px 12px;border-radius:10px;background:#fff;box-shadow:0 4px 14px rgba(7,10,20,.04)}
+  .question{margin-bottom:18px;padding:14px;border-radius:10px;border:1px solid #f0f4f9;background:#fff}
+  .qtitle{font-weight:700;margin-bottom:8px}
+  .options{display:flex;flex-direction:column;gap:8px}
+  .option{display:flex;gap:12px;align-items:center;padding:10px;border-radius:9px;border:1px solid transparent}
+  .option input{accent-color:var(--accent)}
+  .nav{display:flex;justify-content:space-between;gap:12px;margin-top:16px}
+  .progress{font-size:13px;color:var(--muted)}
+  .correct{background:#e8f6ea;border-color:#bfe6c6}
+  .wrong{background:#fff6f6;border-color:#f1c7c7}
+  .show-correct{font-weight:700;color:#137a13;margin-left:auto}
+  .answer-key{margin-top:12px;padding:12px;border-radius:10px;background:#fbfbfb;border:1px dashed #eee;color:#333}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="watermark" id="watermark"></div>
+  <header>
+    <img id="topLogo" class="logo-small" src="" alt="logo"/>
+    <div>
+      <div class="title">UTME CBT — ACME SCIENCE TUTORIAL</div>
+      <div class="subtitle" id="subjectLine"></div>
+    </div>
+    <div class="topright" id="topRightInfo"></div>
+  </header>
+
+  <!-- PASSWORD PAGE -->
+  <main class="page visible" id="passwordPage">
+    <div class="card center" style="max-width:520px;margin:22px auto;">
+      <h2>Enter Access Password</h2>
+      <input id="passwordInput" type="password" placeholder="Enter password"/>
+      <button id="passwordBtn" class="btn">Unlock</button>
+    </div>
+  </main>
+
+  <!-- START PAGE -->
+  <main class="page" id="startPage">
+    <div class="card center" style="max-width:720px;margin:20px auto;">
+      <h2>Ready to start?</h2>
+      <div style="width:100%;max-width:420px">
+        <input id="nameInput" type="text" placeholder="Candidate name (optional)" style="margin-bottom:8px"/>
+        <select id="difficultySelect">
+          <option value="standard">Standard</option>
+          <option value="simple">Simple</option>
+        </select>
+        <button id="startBtn" class="btn" style="margin-top:12px">Start Quiz</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- QUIZ PAGE -->
+  <main class="page" id="quizPage">
+    <div class="card" style="margin:18px">
+      <div class="meta">
+        <div>
+          <div style="font-size:14px">Candidate: <span id="candidateName">—</span></div>
+          <div class="progress" id="progressIndicator">Question 1</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="timer" id="timer">00:00</div>
+          <button id="submitBtn" class="btn">Submit</button>
+        </div>
+      </div>
+      <div id="questionContainer"></div>
+      <div class="nav">
+        <button id="prevBtn" class="btn" style="background:#fff;color:#222;border:1px solid #ddd">Previous</button>
+        <button id="nextBtn" class="btn">Next</button>
+      </div>
+      <div id="resultArea" style="margin-top:16px;display:none"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ==========================
+   ==== EDITABLE SETTINGS ====
+   Change values here as you like
+========================== */
+const SUBJECT = "Biology";  // subject shown under the title
+const PASSWORD = "acme2025"; // password required to unlock
+const TOTAL_TIME_SECONDS = 5*60; // quiz time in seconds
+const LOGO_URL = "https://via.placeholder.com/150.png?text=ACME+LOGO";
+
+/* STANDARD QUESTIONS */
+const QUESTIONS_STANDARD = [
+  {q:"Which organelle is the powerhouse of the cell?",choices:["Nucleus","Mitochondrion","Ribosome","Golgi"],correct:1},
+  {q:"Which biomolecule stores long-term energy?",choices:["Carb","Protein","Lipid","Vitamin"],correct:2},
+  {q:"DNA stands for?",choices:["Deoxyribonucleic acid","Deoxyribose nucleic acid","Dicarboxylic acid","None"],correct:0}
+];
+
+/* SIMPLE QUESTIONS */
+const QUESTIONS_SIMPLE = [
+  {q:"2 + 2 = ?",choices:["3","4","5","6"],correct:1},
+  {q:"The sky is ____.",choices:["Green","Blue","Red","Yellow"],correct:1}
+];
+
+/* ==========================
+   ==== INTERNAL CODE =======
+   Do not edit below unless needed
+========================== */
+let QUESTIONS=[];let answers=[];let submitted=false;let currentIndex=0;let remaining=TOTAL_TIME_SECONDS;let timerInt=null;
+const byId=id=>document.getElementById(id);
+function showPage(p){["passwordPage","startPage","quizPage"].forEach(x=>byId(x).classList.remove("visible"));byId(p).classList.add("visible");}
+function initBranding(){byId("topLogo").src=LOGO_URL;byId("watermark").style.backgroundImage=`url("${LOGO_URL}")`;byId("subjectLine").textContent=SUBJECT+" Quiz";}
+initBranding();
+/* password */
+byId("passwordBtn").onclick=()=>{if(byId("passwordInput").value===PASSWORD){showPage("startPage")}else alert("Wrong password");};
+/* start */
+byId("startBtn").onclick=()=>{QUESTIONS=byId("difficultySelect").value==="standard"?QUESTIONS_STANDARD:QUESTIONS_SIMPLE;answers=new Array(QUESTIONS.length).fill(null);byId("candidateName").textContent=byId("nameInput").value||"—";showPage("quizPage");startQuiz();};
+/* quiz */
+function renderQ(i){const Q=QUESTIONS[i];const qc=byId("questionContainer");qc.innerHTML="";const box=document.createElement("div");box.className="question";box.innerHTML=`<div class="qtitle">${Q.q}</div>`;const opts=document.createElement("div");opts.className="options";Q.choices.forEach((c,idx)=>{const o=document.createElement("label");o.className="option";const r=document.createElement("input");r.type="radio";r.name="q"+i;r.value=idx;if(answers[i]===idx)r.checked=true;r.onchange=()=>answers[i]=idx;const s=document.createElement("span");s.textContent=c;o.appendChild(r);o.appendChild(s);opts.appendChild(o);});box.appendChild(opts);qc.appendChild(box);if(submitted)markQ(box,i);updateProg();}
+function markQ(box,i){
+  const ci = QUESTIONS[i].correct;
+  box.querySelectorAll(".option").forEach((o,idx)=>{
+    o.classList.remove("correct","wrong");
+    o.querySelector("input").disabled = true;
+
+    if(idx === ci){ 
+      o.classList.add("correct");
+      if(!o.querySelector(".show-correct")){
+        const b = document.createElement("span");
+        b.className = "show-correct";
+        b.textContent = "Correct";
+        o.appendChild(b);
+      }
+    }
+    if(answers[i] === idx && idx !== ci){
+      o.classList.add("wrong");
+    }
+  });
+
+  // Always show the answer key once submitted
+  if(!box.querySelector(".answer-key")){
+    const ak = document.createElement("div");
+    ak.className = "answer-key";
+    ak.textContent = "Correct Answer: " + QUESTIONS[i].choices[ci] + 
+                     (answers[i] != null ? " | Your Answer: " + QUESTIONS[i].choices[answers[i]] : " | You skipped");
+    box.appendChild(ak);
+  }
+}
+function updateProg(){byId("progressIndicator").textContent=`Question ${currentIndex+1} of ${QUESTIONS.length}`;}
+byId("nextBtn").onclick=()=>{if(currentIndex<QUESTIONS.length-1){currentIndex++;renderQ(currentIndex);}else alert("Last question");};
+byId("prevBtn").onclick=()=>{if(currentIndex>0){currentIndex--;renderQ(currentIndex);}else alert("First question");};
+/* timer */
+function startTimer(){remaining=TOTAL_TIME_SECONDS;byId("timer").textContent=format(remaining);timerInt=setInterval(()=>{remaining--;byId("timer").textContent=format(remaining);if(remaining<=0){clearInterval(timerInt);if(!submitted)submit();}},1000);}
+function format(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");}
+/* quiz start */
+function startQuiz(){submitted=false;currentIndex=0;renderQ(0);updateProg();if(timerInt)clearInterval(timerInt);startTimer();}
+/* submit */
+byId("submitBtn").onclick=()=>{if(confirm("Submit quiz?"))submit();};
+function submit(){submitted=true;if(timerInt)clearInterval(timerInt);let score=0;QUESTIONS.forEach((q,i)=>{if(answers[i]===q.correct)score++;});byId("resultArea").style.display="block";byId("resultArea").innerHTML=`<div><b>Result:</b> ${score}/${QUESTIONS.length} (${Math.round(score/QUESTIONS.length*100)}%)</div>`;renderQ(currentIndex);}
+/* keyboard nav */
+document.addEventListener("keydown",e=>{if(!byId("quizPage").classList.contains("visible"))return;if(e.key==="ArrowRight")byId("nextBtn").click();if(e.key==="ArrowLeft")byId("prevBtn").click();});
+</script>
+</body>
+</html>
