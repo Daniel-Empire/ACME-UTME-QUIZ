@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>UTME CBT ACME SCIENCE TUTORIAL</title>
+<title>UTME CBT — ACME SCIENCE TUTORIAL</title>
 <style>
   :root{--accent:#0b74de;--bg:#f7f9fc;--card:#fff;--muted:#666;--radius:12px;}
   html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
@@ -50,8 +50,22 @@
     <div class="topright" id="topRightInfo"></div>
   </header>
 
+  <!-- LANDING PAGE -->
+  <main class="page visible" id="landingPage">
+    <div class="card center" style="max-width:620px;margin:22px auto;">
+      <h2>Welcome to ACME UTME CBT Practice</h2>
+      <p>Choose your access type to continue:</p>
+      <button class="btn" onclick="goToPage('passwordPage')">Enter Password</button>
+      <div class="small" style="margin-top:10px">
+        <b>Simple:</b> Free access<br>
+        <b>Standard & Premium:</b> Contact us for access<br>
+        <a href="https://wa.me/2348132459365?text=Hi%2C%20I%20would%20like%20to%20purchase%20access%20to%20the%20ACME%20UTME%20Practice%20questions." target="_blank">Click here to chat on WhatsApp</a>
+      </div>
+    </div>
+  </main>
+
   <!-- PASSWORD PAGE -->
-  <main class="page visible" id="passwordPage">
+  <main class="page" id="passwordPage">
     <div class="card center" style="max-width:520px;margin:22px auto;">
       <h2>Enter Access Password</h2>
       <input id="passwordInput" type="password" placeholder="Enter password"/>
@@ -65,10 +79,6 @@
       <h2>Ready to start?</h2>
       <div style="width:100%;max-width:420px">
         <input id="nameInput" type="text" placeholder="Candidate name (optional)" style="margin-bottom:8px"/>
-        <select id="difficultySelect">
-          <option value="standard">Standard</option>
-          <option value="simple">Simple</option>
-        </select>
         <button id="startBtn" class="btn" style="margin-top:12px">Start Quiz</button>
       </div>
     </div>
@@ -102,68 +112,71 @@
    ==== EDITABLE SETTINGS ====
    Change values here as you like
 ========================== */
-const SUBJECT = "Biology";  // subject shown under the title
-const PASSWORD = "acme2025"; // password required to unlock
-const TOTAL_TIME_SECONDS = 5*60; // quiz time in seconds
-const LOGO_URL = "https://via.placeholder.com/150.png?text=ACME+LOGO";
+const SUBJECT = "Biology";  
 
-/* STANDARD QUESTIONS */
-const QUESTIONS_STANDARD = [
-  {q:"Which organelle is the powerhouse of the cell?",choices:["Nucleus","Mitochondrion","Ribosome","Golgi"],correct:1},
-  {q:"Which biomolecule stores long-term energy?",choices:["Carb","Protein","Lipid","Vitamin"],correct:2},
-  {q:"DNA stands for?",choices:["Deoxyribonucleic acid","Deoxyribose nucleic acid","Dicarboxylic acid","None"],correct:0}
-];
+// Editable passwords
+const PASSWORDS = {
+  simple: "acme2025",
+  standard: "acmestandard2025",
+  premium: "acmepremium2025"
+};
 
-/* SIMPLE QUESTIONS */
+// Quiz time
+const TOTAL_TIME_SECONDS = 5*60;  
+
+// Logo
+const LOGO_URL = "https://raw.githubusercontent.com/Daniel-Empire/ACME-LOGO/main/logo.png";
+
+let currentMode = null;
+
+/* QUESTIONS */
 const QUESTIONS_SIMPLE = [
   {q:"2 + 2 = ?",choices:["3","4","5","6"],correct:1},
   {q:"The sky is ____.",choices:["Green","Blue","Red","Yellow"],correct:1}
 ];
 
+const QUESTIONS_STANDARD = [
+  {q:"Which organelle is the powerhouse of the cell?",choices:["Nucleus","Mitochondrion","Ribosome","Golgi"],correct:1},
+  {q:"Which biomolecule stores long-term energy?",choices:["Carb","Protein","Lipid","Vitamin"],correct:2}
+];
+
+const QUESTIONS_PREMIUM = [
+  {q:"Which blood vessel carries oxygenated blood from lungs to heart?",choices:["Aorta","Pulmonary vein","Pulmonary artery","Vena cava"],correct:1},
+  {q:"Who proposed the law of independent assortment?",choices:["Darwin","Mendel","Pasteur","Hooke"],correct:1}
+];
+
 /* ==========================
    ==== INTERNAL CODE =======
-   Do not edit below unless needed
 ========================== */
 let QUESTIONS=[];let answers=[];let submitted=false;let currentIndex=0;let remaining=TOTAL_TIME_SECONDS;let timerInt=null;
 const byId=id=>document.getElementById(id);
-function showPage(p){["passwordPage","startPage","quizPage"].forEach(x=>byId(x).classList.remove("visible"));byId(p).classList.add("visible");}
+function goToPage(p){["landingPage","passwordPage","startPage","quizPage"].forEach(x=>byId(x).classList.remove("visible"));byId(p).classList.add("visible");}
 function initBranding(){byId("topLogo").src=LOGO_URL;byId("watermark").style.backgroundImage=`url("${LOGO_URL}")`;byId("subjectLine").textContent=SUBJECT+" Quiz";}
 initBranding();
+
 /* password */
-byId("passwordBtn").onclick=()=>{if(byId("passwordInput").value===PASSWORD){showPage("startPage")}else alert("Wrong password");};
+byId("passwordBtn").onclick=()=>{
+  const input=byId("passwordInput").value.trim();
+  if(input===PASSWORDS.simple){currentMode="simple";goToPage("startPage");}
+  else if(input===PASSWORDS.standard){currentMode="standard";goToPage("startPage");}
+  else if(input===PASSWORDS.premium){currentMode="premium";goToPage("startPage");}
+  else alert("Wrong password");
+};
+
 /* start */
-byId("startBtn").onclick=()=>{QUESTIONS=byId("difficultySelect").value==="standard"?QUESTIONS_STANDARD:QUESTIONS_SIMPLE;answers=new Array(QUESTIONS.length).fill(null);byId("candidateName").textContent=byId("nameInput").value||"—";showPage("quizPage");startQuiz();};
+byId("startBtn").onclick=()=>{
+  if(currentMode==="simple")QUESTIONS=QUESTIONS_SIMPLE;
+  if(currentMode==="standard")QUESTIONS=QUESTIONS_STANDARD;
+  if(currentMode==="premium")QUESTIONS=QUESTIONS_PREMIUM;
+  answers=new Array(QUESTIONS.length).fill(null);
+  byId("candidateName").textContent=byId("nameInput").value||"—";
+  goToPage("quizPage");
+  startQuiz();
+};
+
 /* quiz */
 function renderQ(i){const Q=QUESTIONS[i];const qc=byId("questionContainer");qc.innerHTML="";const box=document.createElement("div");box.className="question";box.innerHTML=`<div class="qtitle">${Q.q}</div>`;const opts=document.createElement("div");opts.className="options";Q.choices.forEach((c,idx)=>{const o=document.createElement("label");o.className="option";const r=document.createElement("input");r.type="radio";r.name="q"+i;r.value=idx;if(answers[i]===idx)r.checked=true;r.onchange=()=>answers[i]=idx;const s=document.createElement("span");s.textContent=c;o.appendChild(r);o.appendChild(s);opts.appendChild(o);});box.appendChild(opts);qc.appendChild(box);if(submitted)markQ(box,i);updateProg();}
-function markQ(box,i){
-  const ci = QUESTIONS[i].correct;
-  box.querySelectorAll(".option").forEach((o,idx)=>{
-    o.classList.remove("correct","wrong");
-    o.querySelector("input").disabled = true;
-
-    if(idx === ci){ 
-      o.classList.add("correct");
-      if(!o.querySelector(".show-correct")){
-        const b = document.createElement("span");
-        b.className = "show-correct";
-        b.textContent = "Correct";
-        o.appendChild(b);
-      }
-    }
-    if(answers[i] === idx && idx !== ci){
-      o.classList.add("wrong");
-    }
-  });
-
-  // Always show the answer key once submitted
-  if(!box.querySelector(".answer-key")){
-    const ak = document.createElement("div");
-    ak.className = "answer-key";
-    ak.textContent = "Correct Answer: " + QUESTIONS[i].choices[ci] + 
-                     (answers[i] != null ? " | Your Answer: " + QUESTIONS[i].choices[answers[i]] : " | You skipped");
-    box.appendChild(ak);
-  }
-}
+function markQ(box,i){const ci=QUESTIONS[i].correct;box.querySelectorAll(".option").forEach((o,idx)=>{o.classList.remove("correct","wrong");o.querySelector("input").disabled=true;if(idx===ci){o.classList.add("correct");if(!o.querySelector(".show-correct")){const b=document.createElement("span");b.className="show-correct";b.textContent="Correct";o.appendChild(b);}}else if(answers[i]===idx){o.classList.add("wrong");if(!box.querySelector(".answer-key")){const ak=document.createElement("div");ak.className="answer-key";ak.textContent="Correct: "+QUESTIONS[i].choices[ci];box.appendChild(ak);}}});}
 function updateProg(){byId("progressIndicator").textContent=`Question ${currentIndex+1} of ${QUESTIONS.length}`;}
 byId("nextBtn").onclick=()=>{if(currentIndex<QUESTIONS.length-1){currentIndex++;renderQ(currentIndex);}else alert("Last question");};
 byId("prevBtn").onclick=()=>{if(currentIndex>0){currentIndex--;renderQ(currentIndex);}else alert("First question");};
