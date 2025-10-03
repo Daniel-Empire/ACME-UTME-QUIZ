@@ -50,22 +50,8 @@
     <div class="topright" id="topRightInfo"></div>
   </header>
 
-  <!-- LANDING PAGE -->
-  <main class="page visible" id="landingPage">
-    <div class="card center" style="max-width:620px;margin:22px auto;">
-      <h2>Welcome to ACME UTME CBT Practice</h2>
-      <p>Choose your access type to continue:</p>
-      <button class="btn" onclick="goToPage('passwordPage')">Enter Password</button>
-      <div class="small" style="margin-top:10px">
-        <b>Simple:</b> Free access<br>
-        <b>Standard & Premium:</b> Contact us for access<br>
-        <a href="https://wa.me/2348132459365?text=Hi%2C%20I%20would%20like%20to%20purchase%20access%20to%20the%20ACME%20UTME%20Practice%20questions." target="_blank">Click here to chat on WhatsApp</a>
-      </div>
-    </div>
-  </main>
-
   <!-- PASSWORD PAGE -->
-  <main class="page" id="passwordPage">
+  <main class="page visible" id="passwordPage">
     <div class="card center" style="max-width:520px;margin:22px auto;">
       <h2>Enter Access Password</h2>
       <input id="passwordInput" type="password" placeholder="Enter password"/>
@@ -79,6 +65,10 @@
       <h2>Ready to start?</h2>
       <div style="width:100%;max-width:420px">
         <input id="nameInput" type="text" placeholder="Candidate name (optional)" style="margin-bottom:8px"/>
+        <select id="difficultySelect">
+          <option value="standard">Standard</option>
+          <option value="simple">Simple</option>
+        </select>
         <button id="startBtn" class="btn" style="margin-top:12px">Start Quiz</button>
       </div>
     </div>
@@ -112,28 +102,106 @@
    ==== EDITABLE SETTINGS ====
    Change values here as you like
 ========================== */
-const SUBJECT = "Biology";  
+const SUBJECT = "physics ";  // subject shown under the title
+const PASSWORD = "acme2025"; // password required to unlock
+const TOTAL_TIME_SECONDS = 5*60; // quiz time in seconds
+const LOGO_URL = "https://raw.githubusercontent.com/Daniel-Empire/ACME-LOGO/main/logo.png?text=ACME+LOGO";
 
-// Editable passwords
-const PASSWORDS = {
-  simple: "acme2025",
-  standard: "acmestandard2025",
-  premium: "acmepremium2025"
-};
+/* STANDARD QUESTIONS */
+const QUESTIONS_STANDARD = [
+  {q:"Which of the following statements are true about the spring balance and the chemical balance? I.Both are used to measure the mass of an object II.Either of them may be used to measure the weight of an object III.The spring balance works on the principle of Hooke’s law while the chemical balance works on principle of moment IV.A change in gravity changes the reading of a spring balance but not that of a chemical balance",choices:["I and IV","II and III","III and IV","I and III","I, II and III"],correct:2},
 
-// Quiz time
-const TOTAL_TIME_SECONDS = 5*60;  
+  {q:"The basic principle of operation of a beam balance is",choices:["Archimedes principle","Law of floatation","Hooke’s law","Principle of moments"],correct:3},
 
-// Logo
-const LOGO_URL = "https://raw.githubusercontent.com/Daniel-Empire/ACME-LOGO/main/logo.png";
+  {q:"Which of the following instruments has a reading accuracy of 0.5mm?",choices:["Vernier calipers","Micrometer screw guage","Meter rule","Spring balance"],correct:0},
 
-let currentMode = null;
+  {q:"Which of the following represents the correct precision if the length of a piece of wire is measured with a meter rule?",choices:["35mm","35.0mm","35.00mm","35.01mm"],correct:1},
 
-/* QUESTIONS */
+  {q:"What is the reading of the vernier caliper if the main scale reading is 6.20 cm and the vernier scale reading is 0.07 cm?",choices:["7.10cm","7.09cm","6.90cm","6.34cm","6.27cm"],correct:4},
+
+  {q:"Which of the following readings gives the correct precision of the length of a rod using a vernier caliper?",choices:["4.1cm","4.13cm","4.120cm","4.125cm"],correct:1},
+
+  {q:"The inner diameter of a small test tube can be measured accurately using?",choices:["Pair of vernier calipers","Micrometer screw guage","Meter rule","Pair of dividers"],correct:0},
+
+  {q:"What is the reading of the micrometer screw guage if the sleeve reads 17.50 mm and the thimble reads 0.26 mm?",choices:["17.76mm","16.26mm","17.56mm","16.25mm"],correct:0},
+
+  {q:"Which of the following instruments is most suitable for measuring the outside diameter of a narrow pipe a few millimeters in diameter?",choices:["Pair of calipers","Metre rule","Micrometer screw guage","Tape rule"],correct:2},
+
+  {q:"The thickness of the central portion of a thin converging lens can be determined very accurately by using?",choices:["Vernier caliper","Micrometer screw guage","Telescope","Microscope"],correct:1},
+
+  {q:"The diameter of a small ball can be measured most accurately using?",choices:["Vernier caliper","Micrometer screw guage","Pair of dividers","Meter rule"],correct:1},
+
+  {q:"The volume of an irregular solid can be determined most simply by?",choices:["Using a beam balance","Water displacement in a measuring cylinder","Vernier calipers","Micrometer screw guage"],correct:1},
+
+  {q:"If the local acceleration due to gravity decreases, which instrument’s reading will change?",choices:["Spring balance only","Beam balance only","Both spring and beam balances","Neither"],correct:0}
+];
+
+/* SIMPLE QUESTIONS */
 const QUESTIONS_SIMPLE = [
-// quizQuestions.js
-// Export a question array you can paste into your quiz code.
-// Each question: { id, question, choices: {A..E}, answer: 'A'..'E', explanation }
+  {q:"2 + 2 = ?",choices:["3","4","5","6"],correct:1},
+  {q:"The sky is ____.",choices:["Green","Blue","Red","Yellow"],correct:1}
+];
+
+/* ==========================
+   ==== INTERNAL CODE =======
+   Do not edit below unless needed
+========================== */
+let QUESTIONS=[];let answers=[];let submitted=false;let currentIndex=0;let remaining=TOTAL_TIME_SECONDS;let timerInt=null;
+const byId=id=>document.getElementById(id);
+function showPage(p){["passwordPage","startPage","quizPage"].forEach(x=>byId(x).classList.remove("visible"));byId(p).classList.add("visible");}
+function initBranding(){byId("topLogo").src=LOGO_URL;byId("watermark").style.backgroundImage=`url("${LOGO_URL}")`;byId("subjectLine").textContent=SUBJECT+" Quiz";}
+initBranding();
+/* password */
+byId("passwordBtn").onclick=()=>{if(byId("passwordInput").value===PASSWORD){showPage("startPage")}else alert("Wrong password");};
+/* start */
+byId("startBtn").onclick=()=>{QUESTIONS=byId("difficultySelect").value==="standard"?QUESTIONS_STANDARD:QUESTIONS_SIMPLE;answers=new Array(QUESTIONS.length).fill(null);byId("candidateName").textContent=byId("nameInput").value||"—";showPage("quizPage");startQuiz();};
+/* quiz */
+function renderQ(i){const Q=QUESTIONS[i];const qc=byId("questionContainer");qc.innerHTML="";const box=document.createElement("div");box.className="question";box.innerHTML=`<div class="qtitle">${Q.q}</div>`;const opts=document.createElement("div");opts.className="options";Q.choices.forEach((c,idx)=>{const o=document.createElement("label");o.className="option";const r=document.createElement("input");r.type="radio";r.name="q"+i;r.value=idx;if(answers[i]===idx)r.checked=true;r.onchange=()=>answers[i]=idx;const s=document.createElement("span");s.textContent=c;o.appendChild(r);o.appendChild(s);opts.appendChild(o);});box.appendChild(opts);qc.appendChild(box);if(submitted)markQ(box,i);updateProg();}
+function markQ(box,i){
+  const ci = QUESTIONS[i].correct;
+  box.querySelectorAll(".option").forEach((o,idx)=>{
+    o.classList.remove("correct","wrong");
+    o.querySelector("input").disabled = true;
+
+    if(idx === ci){ 
+      o.classList.add("correct");
+      if(!o.querySelector(".show-correct")){
+        const b = document.createElement("span");
+        b.className = "show-correct";
+        b.textContent = "Correct";
+        o.appendChild(b);
+      }
+    }
+    if(answers[i] === idx && idx !== ci){
+      o.classList.add("wrong");
+    }
+  });
+
+  // Always show the answer key once submitted
+  if(!box.querySelector(".answer-key")){
+    const ak = document.createElement("div");
+    ak.className = "answer-key";
+    ak.textContent = "Correct Answer: " + QUESTIONS[i].choices[ci] + 
+                     (answers[i] != null ? " | Your Answer: " + QUESTIONS[i].choices[answers[i]] : " | You skipped");
+    box.appendChild(ak);
+  }
+}
+function updateProg(){byId("progressIndicator").textContent=`Question ${currentIndex+1} of ${QUESTIONS.length}`;}
+byId("nextBtn").onclick=()=>{if(currentIndex<QUESTIONS.length-1){currentIndex++;renderQ(currentIndex);}else alert("Last question");};
+byId("prevBtn").onclick=()=>{if(currentIndex>0){currentIndex--;renderQ(currentIndex);}else alert("First question");};
+/* timer */
+function startTimer(){remaining=TOTAL_TIME_SECONDS;byId("timer").textContent=format(remaining);timerInt=setInterval(()=>{remaining--;byId("timer").textContent=format(remaining);if(remaining<=0){clearInterval(timerInt);if(!submitted)submit();}},1000);}
+function format(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");}
+/* quiz start */
+function startQuiz(){submitted=false;currentIndex=0;renderQ(0);updateProg();if(timerInt)clearInterval(timerInt);startTimer();}
+/* submit */
+byId("submitBtn").onclick=()=>{if(confirm("Submit quiz?"))submit();};
+function submit(){submitted=true;if(timerInt)clearInterval(timerInt);let score=0;QUESTIONS.forEach((q,i)=>{if(answers[i]===q.correct)score++;});byId("resultArea").style.display="block";byId("resultArea").innerHTML=`<div><b>Result:</b> ${score}/${QUESTIONS.length} (${Math.round(score/QUESTIONS.length*100)}%)</div>`;renderQ(currentIndex);}
+/* keyboard nav */
+document.addEventListener("keydown",e=>{if(!byId("quizPage").classList.contains("visible"))return;if(e.key==="ArrowRight")byId("nextBtn").click();if(e.key==="ArrowLeft")byId("prevBtn").click();});
+</script>
+</body>
+</html>
 
 export const quizQuestions = [
   {
