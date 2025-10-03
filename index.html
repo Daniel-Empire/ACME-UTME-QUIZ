@@ -131,9 +131,193 @@ let currentMode = null;
 
 /* QUESTIONS */
 const QUESTIONS_SIMPLE = [
-  {q:"2 + 2 = ?",choices:["3","4","5","6"],correct:1},
-  {q:"The sky is ____.",choices:["Green","Blue","Red","Yellow"],correct:1}
+// quizQuestions.js
+// Export a question array you can paste into your quiz code.
+// Each question: { id, question, choices: {A..E}, answer: 'A'..'E', explanation }
+
+export const quizQuestions = [
+  {
+    id: 1,
+    question: `Which of the following statements are true about the spring balance and the chemical balance?
+I. Both are used to measure the mass of an object
+II. Either of them may be used to measure the weight of an object
+III. The spring balance works on the principle of Hooke's law while the chemical balance works on the principle of moment
+IV. A change in gravity changes the reading of a spring balance but not that of a chemical balance`,
+    choices: {
+      A: "I and IV",
+      B: "II and III",
+      C: "III and IV",
+      D: "I and III",
+      E: "I, II and III"
+    },
+    answer: "C",
+    explanation: "Spring balance measures weight (Hooke's law) and is affected by gravity. Chemical (beam) balance measures mass (principle of moments) and is not affected by gravity; so III and IV are true."
+  },
+
+  {
+    id: 2,
+    question: "The basic principle of operation of a beam (chemical) balance is:",
+    choices: {
+      A: "Archimedes' principle",
+      B: "Law of floatation",
+      C: "Hooke's law",
+      D: "Principle of moments"
+    },
+    answer: "D",
+    explanation: "A beam balance uses the principle of moments (torque balance) to compare masses."
+  },
+
+  {
+    id: 3,
+    question: "Which of the following instruments has a reading accuracy of about 0.5 mm?",
+    choices: {
+      A: "Vernier calipers",
+      B: "Micrometer screw gauge",
+      C: "Meter rule",
+      D: "Spring balance"
+    },
+    answer: "A",
+    explanation: "Vernier calipers typically give sub-millimetre accuracy (common school verniers ~0.1–0.5 mm), while micrometers are finer (0.01 mm) and meter rules are coarser (≈1 mm)."
+  },
+
+  {
+    id: 4,
+    question: "Which of the following represents the correct precision if the length of a piece of wire is measured with a meter rule?",
+    choices: {
+      A: "35 mm",
+      B: "35.0 mm",
+      C: "35.00 mm",
+      D: "35.01 mm"
+    },
+    answer: "B",
+    explanation: "A typical meter rule gives precision to the nearest 0.1 cm (which is 1 mm), so showing one decimal place in millimetres (e.g., 35.0 mm) is appropriate."
+  },
+
+  {
+    id: 5,
+    question: `The diagram shows a vernier caliper portion with main scale reading and vernier alignment as indicated.
+(Interpretation given below)
+What is the reading?`,
+    choices: {
+      A: "7.10 cm",
+      B: "7.09 cm",
+      C: "6.90 cm",
+      D: "6.34 cm",
+      E: "6.27 cm"
+    },
+    answer: "E",
+    explanation: "Main scale reading = 6.20 cm; Vernier contributes 0.07 cm. Total = 6.27 cm."
+  },
+
+  {
+    id: 6,
+    question: "Which of the following readings gives the correct precision of the length of a rod using a vernier caliper?",
+    choices: {
+      A: "4.1 cm",
+      B: "4.13 cm",
+      C: "4.120 cm",
+      D: "4.125 cm"
+    },
+    answer: "B",
+    explanation: "A vernier caliper typically reads to two decimal places in centimetres (i.e., nearest 0.01 cm), so 4.13 cm is the correct format."
+  },
+
+  {
+    id: 7,
+    question: "The inner diameter of a small test tube can be measured accurately using:",
+    choices: {
+      A: "Pair of vernier calipers",
+      B: "Micrometer screw gauge",
+      C: "Meter rule",
+      D: "Pair of dividers"
+    },
+    answer: "A",
+    explanation: "Vernier calipers can measure both internal and external diameters of cylindrical objects accurately."
+  },
+
+  {
+    id: 8,
+    question: `The micrometer screw gauge shows:
+(sleeve reading 17.5 mm; thimble gives 0.26 mm)
+What is the reading?`,
+    choices: {
+      A: "17.76 mm",
+      B: "16.26 mm",
+      C: "17.56 mm",
+      D: "16.25 mm"
+    },
+    answer: "A",
+    explanation: "Add sleeve reading (17.50 mm) and thimble reading (0.26 mm) = 17.76 mm."
+  },
+
+  {
+    id: 9,
+    question: "Which of the following instruments is most suitable for measuring the outside diameter of a narrow pipe a few millimetres in diameter?",
+    choices: {
+      A: "Pair of calipers",
+      B: "Metre rule",
+      C: "Micrometer screw gauge",
+      D: "Tape rule"
+    },
+    answer: "C",
+    explanation: "A micrometer screw gauge measures external diameters of small cylindrical objects very accurately (to 0.01 mm)."
+  },
+
+  {
+    id: 10,
+    question: "The thickness of the central portion of a thin converging lens can be determined very accurately by using:",
+    choices: {
+      A: "Vernier caliper",
+      B: "Micrometer screw gauge",
+      C: "Telescope",
+      D: "Microscope"
+    },
+    answer: "B",
+    explanation: "Micrometers are used for very small thickness measurements with high precision (typically 0.01 mm)."
+  },
+
+  // Completed / inferred question 11 (original was truncated)
+  {
+    id: 11,
+    question: "The diameter of a small steel ball (few mm) can be measured most accurately using:",
+    choices: {
+      A: "Vernier caliper",
+      B: "Micrometer screw gauge",
+      C: "Pair of dividers",
+      D: "Meter rule"
+    },
+    answer: "B",
+    explanation: "A micrometer screw gauge is the best choice for measuring the external diameter of a small ball accurately (to 0.01 mm)."
+  },
+
+  // Two additional new questions following the same pattern
+  {
+    id: 12,
+    question: "The volume of an irregular solid can be determined most simply by:",
+    choices: {
+      A: "Using a beam balance",
+      B: "Measuring cylinder by water displacement",
+      C: "Vernier calipers",
+      D: "Micrometer screw gauge"
+    },
+    answer: "B",
+    explanation: "Water displacement in a measuring cylinder gives the volume of an irregular solid directly."
+  },
+
+  {
+    id: 13,
+    question: "If the local acceleration due to gravity decreases (e.g., by going to a higher altitude), which instrument's reading will change?",
+    choices: {
+      A: "Spring balance only",
+      B: "Beam (chemical) balance only",
+      C: "Both spring and beam balances",
+      D: "Neither"
+    },
+    answer: "A",
+    explanation: "A spring balance measures weight (force due to gravity) so its reading changes; a beam balance compares mass and is unaffected by gravity."
+  }
 ];
+
 
 const QUESTIONS_STANDARD = [
   {q:"Which organelle is the powerhouse of the cell?",choices:["Nucleus","Mitochondrion","Ribosome","Golgi"],correct:1},
